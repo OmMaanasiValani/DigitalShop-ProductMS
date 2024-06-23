@@ -31,10 +31,24 @@ public class ProductServiceImpl implements  ProductService{
 
     @Override
     public ProductResponse getProduct(long id) {
+        log.info("Fetching product..");
         ProductEntity productEntity = productRepo.findById(id)
                 .orElseThrow(()->new ProductNotFoundException("Product with ID "+id+" does not exist","PRODUCT_NOT_FOUND"));
         ProductResponse productResponse = new ProductResponse();
         BeanUtils.copyProperties(productEntity,productResponse);
         return productResponse;
+    }
+
+    @Override
+    public void reduceQuantity(long id, long quantity) {
+        log.info("Reducing product quantity for product ID {}",id);
+        ProductEntity entity = productRepo.findById(id)
+                .orElseThrow(()->new ProductNotFoundException("Product with product ID:"+id+"not found","PRODUCT_NOT_FOUND"));
+        if(entity.getQuantity()<quantity){
+            throw new ProductNotFoundException("Product quantity is insufficient","INSUFFICIENT_QUANTITY");
+        }
+        entity.setQuantity(entity.getQuantity()-quantity);
+        productRepo.save(entity);
+        log.info("Product has been reduced to {}",entity.getQuantity());
     }
 }
